@@ -146,12 +146,18 @@ if [[ "${host}" == "github" ]]; then
   existing=$(gh pr list --base "${BASE}" --head "${HEAD}" --state open --json url -q '.[0].url // empty' 2>/dev/null || true)
   if [[ -n "${existing}" ]]; then
     url="${existing}"
-    if ! BODY=$(gh pr view "${url}" --json body -q .body 2>/dev/null); then
+    if [[ ! "${url}" =~ /pull/([0-9]+)$ ]]; then
+      echo "[ERROR] could not parse existing PR number: ${url}" >&2
+      exit 1
+    fi
+    existing_pr_id="${BASH_REMATCH[1]}"
+    if ! BODY=$(gh api "repos/${repo_slug}/pulls/${existing_pr_id}" --jq .body 2>/dev/null); then
       echo "[ERROR] could not read existing PR description: ${url}" >&2
       exit 1
     fi
     ensure_body_metadata
-    if ! gh pr edit "${url}" --body "${BODY}" >/dev/null 2>&1; then
+    if ! gh api "repos/${repo_slug}/pulls/${existing_pr_id}" --method PATCH \
+      --raw-field body="${BODY}" >/dev/null 2>&1; then
       echo "[ERROR] could not update existing PR description: ${url}" >&2
       exit 1
     fi
