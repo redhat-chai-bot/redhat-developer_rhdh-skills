@@ -19,24 +19,42 @@ trap 'rm -rf "${tmpdir}"' EXIT
 git init -q "${tmpdir}"
 git -C "${tmpdir}" config user.email 'test@example.com'
 git -C "${tmpdir}" config user.name 'test'
+git -C "${tmpdir}" config commit.gpgsign false
 git -C "${tmpdir}" remote add origin 'https://github.com/example/rhdh-plugins.git'
-git -C "${tmpdir}" commit --allow-empty -q -m 'init'
+git -C "${tmpdir}" commit --allow-empty -q -m 'init' \
+  -m 'Assisted-By: Codex (5.6 Sol High)'
 
-dry=$("${SH}" --cwd "${tmpdir}" --base main --head chore/test --title 'chore: test' --dry-run)
+dry=$("${SH}" --cwd "${tmpdir}" --base main --head chore/test --title 'chore: test' \
+  --issue RHIDP-1 --assisted-by 'Codex (5.6 Sol High)' --dry-run)
 printf '%s\n' "${dry}" | grep -q 'title=chore: test \[main\]' || {
   echo "expected title suffix [main]" >&2
   exit 1
 }
-printf '%s\n' "${dry}" | grep -q 'no Jira issue; skip link' || {
-  echo "expected skip-link message" >&2
+printf '%s\n' "${dry}" | grep -Fq 'Related Jira: [RHIDP-1](https://redhat.atlassian.net/browse/RHIDP-1)' || {
+  echo "expected Markdown Jira link" >&2
+  exit 1
+}
+printf '%s\n' "${dry}" | grep -Fq 'Assisted-By: Codex (5.6 Sol High)' || {
+  echo "expected model-specific attribution" >&2
   exit 1
 }
 
-dry_j=$("${SH}" --cwd "${tmpdir}" --base main --head chore/test --title 'chore: test' \
-  --issue RHIDP-1 --dry-run)
-printf '%s\n' "${dry_j}" | grep -q 'would link Jira RHIDP-1' || {
-  echo "expected would-link message" >&2
+if "${SH}" --cwd "${tmpdir}" --base main --head chore/test --title 'chore: test' \
+  --assisted-by 'Codex (5.6 Sol High)' --dry-run >/dev/null 2>&1; then
+  echo "expected missing Jira issue to fail" >&2
   exit 1
-}
+fi
+
+if "${SH}" --cwd "${tmpdir}" --base main --head chore/test --title 'chore: test' \
+  --issue RHIDP-1 --dry-run >/dev/null 2>&1; then
+  echo "expected missing attribution to fail" >&2
+  exit 1
+fi
+
+if "${SH}" --cwd "${tmpdir}" --base main --head chore/test --title 'chore: test' \
+  --issue RHIDP-1 --assisted-by 'Codex (5.6 Luna Medium)' --dry-run >/dev/null 2>&1; then
+  echo "expected mismatched commit attribution to fail" >&2
+  exit 1
+fi
 
 echo "ok create-pr-mr smoke"
