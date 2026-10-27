@@ -39,6 +39,24 @@ printf '%s\n' "${dry}" | grep -Fq 'Assisted-By: Codex (5.6 Sol High)' || {
   exit 1
 }
 
+git -C "${tmpdir}" commit --allow-empty -q -m 'tool-only attribution' \
+  -m 'Assisted-By: Codex'
+dry_tool=$("${SH}" --cwd "${tmpdir}" --base main --head chore/test --title 'chore: test' \
+  --issue RHIDP-1 --assisted-by 'Codex' --dry-run)
+printf '%s\n' "${dry_tool}" | grep -Fq 'Assisted-By: Codex' || {
+  echo "expected tool-only attribution" >&2
+  exit 1
+}
+
+git -C "${tmpdir}" commit --allow-empty -q -m 'unknown attribution' \
+  -m 'Assisted-By: Unknown AI (possibly Skynet)'
+dry_unknown=$("${SH}" --cwd "${tmpdir}" --base main --head chore/test --title 'chore: test' \
+  --issue RHIDP-1 --assisted-by 'Unknown AI (possibly Skynet)' --dry-run)
+printf '%s\n' "${dry_unknown}" | grep -Fq 'Assisted-By: Unknown AI (possibly Skynet)' || {
+  echo "expected unknown-AI attribution" >&2
+  exit 1
+}
+
 if "${SH}" --cwd "${tmpdir}" --base main --head chore/test --title 'chore: test' \
   --assisted-by 'Codex (5.6 Sol High)' --dry-run >/dev/null 2>&1; then
   echo "expected missing Jira issue to fail" >&2

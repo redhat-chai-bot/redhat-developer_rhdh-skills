@@ -25,7 +25,7 @@ usage() {
 Usage:
   create-pr-mr.sh --cwd DIR --base BRANCH --head BRANCH --title TITLE
                   [--body TEXT | --body-file FILE]
-                  --issue KEY --assisted-by 'IDE (MODEL)'
+                  --issue KEY --assisted-by ATTRIBUTION
                   [--label LABEL] [--open] [--dry-run]
 
 Caller owns the commit. This script pushes --head and opens a GitHub PR or
@@ -67,7 +67,7 @@ done
   exit 1
 }
 [[ -n "${ASSISTED_BY}" ]] || {
-  echo "[ERROR] --assisted-by 'IDE (MODEL)' is required" >&2
+  echo "[ERROR] --assisted-by ATTRIBUTION is required" >&2
   exit 1
 }
 if [[ -n "${BODY_FILE}" ]]; then

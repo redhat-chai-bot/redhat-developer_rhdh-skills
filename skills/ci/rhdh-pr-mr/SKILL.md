@@ -2,7 +2,7 @@
 name: rhdh-pr-mr
 description: >-
   Pushes a topic branch and opens a GitHub pull request or GitLab CEE merge
-  request for CI and agent automation after validating model attribution and a
+  request for CI and agent automation after validating AI/tool attribution and a
   linked Jira issue in its description, then links Jira via /rhdh-jira-link.
   Use for "open a PR", "create the merge request", "push and open PR/MR after
   a yarn or base-image bump", or when another CI skill needs a shared opener.
@@ -21,7 +21,8 @@ approval when an agent is driving. Weekly bots may call the script unattended.
 - **Not** `/rhdh-pr-create` (plugin changesets, recordings, monorepo publish).
 - **Requires** a known Jira key and calls `/rhdh-jira-link` after opening. Stop
   before pushing when no issue is known; never invent one.
-- **Requires** the active IDE and model label, such as `Codex (5.6 Sol High)`.
+- **Requires** an explicit attribution resolved from the available IDE, CLI,
+  and model identity.
 - Midstream `createPR.sh` (distgit) stays for `updateBaseImages.sh` until a later migration.
 
 ## Script
@@ -47,11 +48,17 @@ The script appends ` [<base>]` to `--title` when that suffix is missing, includi
 for `main` (`chore: short summary` becomes `chore: short summary [main]`). A
 title that already ends with the base branch is left as-is.
 
+Resolve the `--assisted-by` value from the current work, in this order:
+
+1. Use `<IDE or CLI> (<model label>)` when both are known, such as
+   `Codex (5.6 Sol High)`.
+2. Use `<IDE or CLI>` when the tool is known but the model is not.
+3. Use `Unknown AI (possibly Skynet)` when neither can be identified.
+
 Before pushing, the script verifies that the latest commit contains the exact
-`Assisted-By: <IDE> (<model>)` trailer supplied by `--assisted-by`. It adds the
-same line and `Related Jira: [KEY](https://redhat.atlassian.net/browse/KEY)` to
-the PR/MR description. Supply the active model for this work; never reuse a
-model label from an earlier session.
+`Assisted-By: <resolved value>` trailer. It adds the same line and
+`Related Jira: [KEY](https://redhat.atlassian.net/browse/KEY)` to the PR/MR
+description.
 
 GitLab MRs set `remove_source_branch: true` so merging deletes the topic branch.
 
@@ -69,8 +76,8 @@ sibling skill is not next to this one in the pack checkout.
 
 ## Agents
 
-1. Derive the attribution from the active IDE/model label and add that exact
-   `Assisted-By:` trailer to the commit.
+1. Resolve the most specific available attribution with the fallback order
+   above and add that exact `Assisted-By:` trailer to the commit.
 2. Resolve the Jira key from the conversation. Stop before pushing when none is
    known; never turn a plain issue key in the description into an unlinked label.
 3. Follow `/mutation-gate` for push + open + Jira link.
@@ -90,6 +97,6 @@ shellcheck --severity=warning "$SKILL/scripts/create-pr-mr.sh"
 ## Completion
 
 Done when the topic branch is pushed; the latest commit and PR/MR description
-carry the exact active-model attribution; the description contains the Markdown
+carry the exact resolved attribution; the description contains the Markdown
 Jira link; a Jira Web link was updated or its missing credential was reported;
 and a GitLab MR is configured to delete its source branch after merge.
