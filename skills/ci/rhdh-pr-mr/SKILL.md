@@ -36,7 +36,7 @@ SKILL=<this skill's directory>
   --title 'chore: short summary' \
   --body-file /tmp/body.md \
   --issue RHIDP-12345 \
-  --assisted-by 'Codex (5.6 Sol High)' \
+  --assisted-by '<IDE or CLI> (<model label>)' \
   [--label ok-to-test] \
   [--dry-run]
 ```
