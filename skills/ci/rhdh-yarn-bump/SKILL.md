@@ -48,8 +48,10 @@ Plus pins Yarn cannot see: `ENV YARN=`, Containerfile / Dockerfile `yarn_version
 
 ```bash
 SKILL=<this skill's directory>
-"$SKILL/scripts/yarn-bump.sh"                 # resolve latest Yarn 4.x, clone, bump, PR/MR
-"$SKILL/scripts/yarn-bump.sh" --to 4.18.1 --dry-run
+# Prerequisites: JIRA_ISSUE must be set to a standing ticket.
+# RHDH_ASSISTED_BY defaults to yarn-bump.sh (rhdh-yarn-bump) for unattended runs.
+"$SKILL/scripts/yarn-bump.sh" --issue RHIDP-NNNNN               # resolve latest 4.x, clone, bump, PR/MR
+"$SKILL/scripts/yarn-bump.sh" --issue RHIDP-NNNNN --to 4.18.1 --dry-run
 ```
 
 It resolves Yarn 4.x (`@yarnpkg/cli`; never `stable` / 5.x unless `--to`), downloads that CLI once, clones the six repos, skips open `chore/automated-yarn-bump*` PRs/MRs and denylist pins (`4.8.1` / `4.9.2` / `4.15.0`), bumps each tree with `--bin` (so the release binary is in the diff), commits as `rhdh-bot` with an `Assisted-By:` trailer, and opens PRs/MRs via sibling `/rhdh-pr-mr` with linked Jira and attribution.

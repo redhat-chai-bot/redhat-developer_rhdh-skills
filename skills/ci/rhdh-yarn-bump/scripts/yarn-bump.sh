@@ -78,6 +78,10 @@ done
   echo "[ERROR] --assisted-by ATTRIBUTION or RHDH_ASSISTED_BY env required" >&2
   exit 1
 }
+if [[ "${ASSISTED_BY}" =~ $'\n' ]] || [[ ! "${ASSISTED_BY}" =~ [^[:space:]] ]]; then
+  echo "[ERROR] --assisted-by must be a single non-blank line" >&2
+  exit 1
+fi
 
 if [[ -z "${TO}" ]]; then
   TO=$(npm view @yarnpkg/cli versions --json \
