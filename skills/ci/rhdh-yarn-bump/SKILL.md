@@ -52,9 +52,9 @@ SKILL=<this skill's directory>
 "$SKILL/scripts/yarn-bump.sh" --to 4.18.1 --dry-run
 ```
 
-It resolves Yarn 4.x (`@yarnpkg/cli`; never `stable` / 5.x unless `--to`), downloads that CLI once, clones the six repos, skips open `chore/automated-yarn-bump*` PRs/MRs and denylist pins (`4.8.1` / `4.9.2` / `4.15.0`), bumps each tree with `--bin` (so the release binary is in the diff), commits as `rhdh-bot`, and opens PRs/MRs via sibling `/rhdh-pr-mr` (no Jira key for bot bumps).
+It resolves Yarn 4.x (`@yarnpkg/cli`; never `stable` / 5.x unless `--to`), downloads that CLI once, clones the six repos, skips open `chore/automated-yarn-bump*` PRs/MRs and denylist pins (`4.8.1` / `4.9.2` / `4.15.0`), bumps each tree with `--bin` (so the release binary is in the diff), commits as `rhdh-bot` with an `Assisted-By:` trailer, and opens PRs/MRs via sibling `/rhdh-pr-mr` with linked Jira and attribution.
 
-GitLab weekly-maintenance clones this skill pack and runs `yarn-bump.sh` after digest/bootc and before Quay cleanup.
+GitLab weekly-maintenance clones this skill pack and runs `yarn-bump.sh` after digest/bootc and before Quay cleanup. The scheduler must set `JIRA_ISSUE` to a standing ticket for automated yarn bumps; `RHDH_ASSISTED_BY` defaults to `yarn-bump.sh (rhdh-yarn-bump)` for unattended runs.
 
 ## Manual mutator (existing checkouts)
 
